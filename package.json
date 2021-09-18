@@ -7,7 +7,9 @@
     "example": "example"
   },
   "scripts": {
-    "example": "cd example && node server.js"
+    "lint": "eslint ./src ./tests --ext .js --fix",
+    "lint:no-fix": "eslint ./src ./tests --ext .js",
+    "example:commonjs": "cd example && node server.js"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +20,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/JasonAtallah/express-directory-router"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.4.1"
   }
 }
