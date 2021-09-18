@@ -19,8 +19,8 @@ DIRECTORY STRUCTURE
 - routes
   * todos.js
   - todo
-    * index.js
-    * :todoId.js
+    * index.js (index files are used to create root level routes of path, same as creating todo.js)
+    * :todoId.js (prefix filename with ":" for dynamic routes)
 
 ROUTES GENERATED
 ----------------

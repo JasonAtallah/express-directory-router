@@ -14,6 +14,7 @@ async function getFiles(dir) {
 }
 
 function genPath(dirName, file) {
+  // TODO: handled routes prefixed with './'
   return file
     .split(dirName)[1]
     .split(file.includes('index.js') ? 'index.js' : '.js')[0];
