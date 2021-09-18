@@ -5,12 +5,12 @@ exports.get = (req, res, next) => {
 
 exports.post = [
   (_, __, next) => {
-    console.log('numero uno');
+    console.log('mw');
     next();
   },
   (_, res) => {
-    console.log('numero dos');
-    res.send('posteddddd');
+    console.log('mw 2');
+    res.send('posted');
   },
 ];
 
