@@ -8,7 +8,7 @@ async function getFiles(dir) {
     dirents.map(dirent => {
       const res = resolve(dir, dirent.name);
       return dirent.isDirectory() ? getFiles(res) : res;
-    })
+    }),
   );
   return Array.prototype.concat(...files);
 }
@@ -29,12 +29,18 @@ exports.createDirRouter = async dirName => {
     Object.keys(module).map(modExport => {
       try {
         const path = genPath(dirName, file);
-        router[modExport](path, module[modExport]);
+        const modExportMw = module[modExport];
+        const modExportMwArray = Array.isArray(modExportMw)
+          ? modExportMw
+          : [modExportMw];
+        router[modExport](path, ...modExportMwArray);
       } catch (error) {
-        console.log('failed for', file, modExport);
+        console.log(
+          `ERROR:express-directory-router\n\t[METHOD] ${modExport}\n\t[FILE] ${file}\n\t[MESSAGE] Failed to create route`,
+        );
       }
     });
   });
-  j;
+
   return router;
 };

@@ -9,17 +9,17 @@
   "scripts": {
     "lint": "eslint ./src ./tests --ext .js --fix",
     "lint:no-fix": "eslint ./src ./tests --ext .js",
-    "example:commonjs": "cd example && node server.js"
+    "example:commonjs": "cd examples/commonjs && node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "express": "^4.17.1"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/JasonAtallah/express-directory-router"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

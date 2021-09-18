@@ -1,5 +1,5 @@
 const express = require('express');
-const { createDirRouter } = require('../src/');
+const { createDirRouter } = require('../../src');
 
 const runApp = async () => {
   const app = express();
@@ -9,4 +9,5 @@ const runApp = async () => {
   app.use(routes);
   app.listen(3000, () => console.log('Magic happening on port 3000'));
 };
+
 runApp();
