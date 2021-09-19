@@ -4,11 +4,11 @@ import { readdir } from 'fs/promises';
 import { Dirent } from 'fs';
 
 export const createDirRouter = async (
-  routesDirRaw: string,
+  routesDirectory: string,
 ): Promise<Router> => {
   const router = Router();
 
-  const routesDir = routesDirRaw.replace('./', '');
+  const routesDir = routesDirectory.replace('./', '');
   const routesDirFiles = await getFiles(routesDir);
   await Promise.all(
     routesDirFiles.map(routeFile =>
@@ -19,33 +19,26 @@ export const createDirRouter = async (
   return router;
 };
 
-const genPath = (routesDir: string, file: string): string =>
+const genRoutePath = (routesDir: string, file: string): string =>
   file
     .split(routesDir)[1]
     // removes extension (.ts or .js)
     .slice(0, -3)
-    .replace('index', '');
-
-const getFilesFromDirent = async (
-  dirent: Dirent,
-  routesDir: string,
-): Promise<string | string[]> => {
-  const subRoute = resolve(routesDir, dirent.name);
-
-  if (dirent.isDirectory()) {
-    return await getFiles(subRoute);
-  }
-
-  return subRoute;
-};
+    .replace('/index', '');
 
 const getFiles = async (routesDir: string): Promise<string[]> => {
   const dirents = await readdir(routesDir, { withFileTypes: true });
+  const getFilesPromises = dirents.map(async (dirent: Dirent) => {
+    const subRoute = resolve(routesDir, dirent.name);
 
-  const files = await Promise.all(
-    dirents.map((dirent: Dirent) => getFilesFromDirent(dirent, routesDir)),
-  );
+    if (dirent.isDirectory()) {
+      return await getFiles(subRoute);
+    }
 
+    return subRoute;
+  });
+
+  const files = await Promise.all(getFilesPromises);
   return files.flat();
 };
 
@@ -54,8 +47,6 @@ const registerRoutes = async (
   routesDir: string,
   router: Router,
 ): Promise<void> => {
-  const path = genPath(routesDir, file);
-
   function registerRoute(modExport: string): void {
     try {
       // Put in array and flatten so either a single mw or an array of mw can be passed in
@@ -69,6 +60,7 @@ const registerRoutes = async (
     }
   }
 
+  const path = genRoutePath(routesDir, file);
   const moduleRaw = await import(file);
   const module = moduleRaw.default || moduleRaw;
   Object.keys(module).forEach(registerRoute);

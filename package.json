@@ -10,9 +10,8 @@
   ],
   "scripts": {
     "prepare": "npm run build",
-    "build": "rimraf dist && tsc",
-    "peaceOfMindCheck": "npm run format && npm run lint && npm run test",
-    "prepublishOnly": "npm run peaceOfMindCheck",
+    "build": "rimraf lib && tsc",
+    "prepublishOnly": "npm run format && npm run lint && npm run test",
     "preversion": "npm run lint && npm run format",
     "postversion": "git push && git push --tags",
     "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.js\" \"examples/**/*.ts\"",
