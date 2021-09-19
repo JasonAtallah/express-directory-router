@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { readdir } from 'fs/promises';
 import { Dirent } from 'fs';
 
-async function getFiles(dirName: string): Promise<any> {
+async function getFiles(dirName: string): Promise<number> {
   const dirents = await readdir(dirName, { withFileTypes: true });
 
   const files = await Promise.all(
