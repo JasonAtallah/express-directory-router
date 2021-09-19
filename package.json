@@ -8,9 +8,16 @@
     "lib /**/*"
   ],
   "scripts": {
+    "prepare": "npm run build",
     "build": "rimraf dist && tsc",
+    "peaceOfMindCheck": "npm run format && npm run lint && npm run test",
+    "prepublishOnly": "npm run peaceOfMindCheck",
+    "preversion": "npm run lint && npm run format",
+    "postversion": "git push && git push --tags",
+    "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.js\" \"examples/**/*.ts\"",
     "lint": "npm run lint:no-fix --fix",
-    "lint:no-fix": "eslint ./src ./tests --ext .js,.ts",
+    "lint:no-fix": "eslint ./src ./tests ./examples --ext .js,.ts",
+    "test": "echo 'testing..'",
     "example:commonjs": "npm run build && cd examples/commonjs && node server.js",
     "example:typescript": "npm run build && cd examples/typescript && ts-node server.ts"
   },
