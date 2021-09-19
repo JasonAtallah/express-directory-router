@@ -3,58 +3,63 @@ import { resolve } from 'path';
 import { readdir } from 'fs/promises';
 import { Dirent } from 'fs';
 
-export const createDirRouter = async (dirNameRaw: string): Promise<Router> => {
+export const createDirRouter = async (
+  routesDirRaw: string,
+): Promise<Router> => {
   const router = Router();
 
-  const dirName = dirNameRaw.split('./').filter(i => !!i)[0];
-  const files = await getFiles(dirName);
-  await Promise.all(files.map(file => registerRoutes(file, dirName, router)));
+  const routesDir = routesDirRaw.replace('./', '');
+  const routesDirFiles = await getFiles(routesDir);
+  await Promise.all(
+    routesDirFiles.map(routeFile =>
+      registerRoutes(routeFile, routesDir, router),
+    ),
+  );
 
   return router;
 };
 
-const genPath = (dirName: string, file: string): string =>
+const genPath = (routesDir: string, file: string): string =>
   file
-    .split(dirName)[1]
-    .split(
-      ['index.js', 'index.ts', '.js', '.ts'].find(i => file.endsWith(i)) || '',
-    )[0];
-
-const getModExportMw = (modExportMw: string): string[] =>
-  Array.isArray(modExportMw) ? modExportMw : [modExportMw];
+    .split(routesDir)[1]
+    // removes extension (.ts or .js)
+    .slice(0, -3)
+    .replace('index', '');
 
 const getFilesFromDirent = async (
   dirent: Dirent,
-  dirName: string,
+  routesDir: string,
 ): Promise<string | string[]> => {
-  const res = resolve(dirName, dirent.name);
+  const subRoute = resolve(routesDir, dirent.name);
 
   if (dirent.isDirectory()) {
-    return await getFiles(res);
+    return await getFiles(subRoute);
   }
 
-  return res;
+  return subRoute;
 };
 
-const getFiles = async (dirName: string): Promise<string[]> => {
-  const dirents = await readdir(dirName, { withFileTypes: true });
+const getFiles = async (routesDir: string): Promise<string[]> => {
+  const dirents = await readdir(routesDir, { withFileTypes: true });
+
   const files = await Promise.all(
-    dirents.map((dirent: Dirent) => getFilesFromDirent(dirent, dirName)),
+    dirents.map((dirent: Dirent) => getFilesFromDirent(dirent, routesDir)),
   );
 
-  return Array.prototype.concat(...files);
+  return files.flat();
 };
 
 const registerRoutes = async (
   file: string,
-  dirName: string,
+  routesDir: string,
   router: Router,
 ): Promise<void> => {
-  const path = genPath(dirName, file);
+  const path = genPath(routesDir, file);
 
   function registerRoute(modExport: string): void {
     try {
-      const modExportMwArray = getModExportMw(module[modExport]);
+      // Put in array and flatten so either a single mw or an array of mw can be passed in
+      const modExportMwArray = [module[modExport]].flat();
       // @ts-expect-error: TODO, find type from express
       router[modExport](path, ...modExportMwArray);
     } catch (error) {
