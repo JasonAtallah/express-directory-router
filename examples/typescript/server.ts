@@ -1,5 +1,5 @@
 import * as express from 'express';
-import createDirRouter from '../../lib';
+import { createDirRouter } from '../../lib';
 
 async function runApp(): Promise<void> {
   const app = express();

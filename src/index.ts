@@ -65,4 +65,4 @@ async function createDirRouter(dirNameRaw: string): Promise<Router> {
   return router;
 }
 
-export default createDirRouter;
+export { createDirRouter };

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 const express = require('express');
-const { createDirRouter } = require('../../dist');
+const { createDirRouter } = require('../../lib');
 
 const runApp = async () => {
   const app = express();
