@@ -1,5 +1,7 @@
 # express-directory-router
 
+[![npm version](https://badge.fury.io/js/express-directory-router.svg)](https://badge.fury.io/js/express-directory-router)
+
 express-directory-router lets you build your express router using a directory tree with next to no boilerplate and without losing any features from [express](https://github.com/expressjs/express).
 
 Inspired by [Next router](https://github.com/vercel/next.js).

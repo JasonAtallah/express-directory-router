@@ -12,22 +12,17 @@ async function getFiles(dirName: string): Promise<any> {
       return dirent.isDirectory() ? getFiles(res) : res;
     }),
   );
-
   return Array.prototype.concat(...files);
 }
 
 function genPath(dirName: string, file: string): string {
   let path = file.split(dirName)[1];
 
-  if (path.endsWith('index.js')) {
-    path = path.split('index.js')[0];
-  } else if (path.endsWith('index.ts')) {
-    path = path.split('index.ts')[0];
-  } else if (path.endsWith('.js')) {
-    path = path.split('.js')[0];
-  } else if (path.endsWith('.ts')) {
-    path = path.split('.ts')[0];
-  }
+  ['index.js', 'index.ts', '.js', '.ts'].forEach(end => {
+    if (path.endsWith(end)) {
+      path = path.split(end)[0];
+    }
+  });
 
   return path;
 }
@@ -45,14 +40,14 @@ async function createDirRouter(dirNameRaw: string): Promise<Router> {
     const moduleRaw = await import(file);
     const module = moduleRaw.default ? moduleRaw.default : moduleRaw;
 
-    Object.keys(module).map((modExport: string) => {
+    Object.keys(module).forEach((modExport: string) => {
       try {
         const path = genPath(dirName, file);
         const modExportMw = module[modExport];
         const modExportMwArray = Array.isArray(modExportMw)
           ? modExportMw
           : [modExportMw];
-        // @ts-expect-error: Cannot find proper type for route
+        // @ts-expect-error: TODO, find type from express
         router[modExport](path, ...modExportMwArray);
       } catch (error) {
         console.log(
