@@ -3,19 +3,25 @@ import { resolve } from 'path';
 import { readdir } from 'fs/promises';
 import { Dirent } from 'fs';
 
-async function getFiles(dirName: string): Promise<any> {
+const getFiles = async (dirName: string): Promise<string[]> => {
   const dirents = await readdir(dirName, { withFileTypes: true });
 
   const files = await Promise.all(
-    dirents.map((dirent: Dirent) => {
+    dirents.map(async (dirent: Dirent): Promise<string | string[]> => {
       const res = resolve(dirName, dirent.name);
-      return dirent.isDirectory() ? getFiles(res) : res;
+
+      if (dirent.isDirectory()) {
+        return await getFiles(res);
+      }
+
+      return res;
     }),
   );
-  return Array.prototype.concat(...files);
-}
 
-function genPath(dirName: string, file: string): string {
+  return Array.prototype.concat(...files);
+};
+
+const genPath = (dirName: string, file: string): string => {
   let path = file.split(dirName)[1];
 
   ['index.js', 'index.ts', '.js', '.ts'].forEach(end => {
@@ -25,41 +31,48 @@ function genPath(dirName: string, file: string): string {
   });
 
   return path;
-}
+};
 
-async function createDirRouter(dirNameRaw: string): Promise<Router> {
-  const dirName = dirNameRaw.startsWith('./')
+const getDirName = (dirNameRaw: string): string =>
+  dirNameRaw.startsWith('./')
     ? dirNameRaw.split('./').filter(i => !!i)[0]
     : dirNameRaw;
 
+const getModExportMw = (modExportMw: string): string[] =>
+  Array.isArray(modExportMw) ? modExportMw : [modExportMw];
+
+const registerRoutes = async (
+  file: string,
+  dirName: string,
+  router: Router,
+): Promise<void> => {
+  const moduleRaw = await import(file);
+  const module = moduleRaw.default ? moduleRaw.default : moduleRaw;
+  const path = genPath(dirName, file);
+
+  function registerRoute(modExport: string): void {
+    try {
+      const modExportMwArray = getModExportMw(module[modExport]);
+      // @ts-expect-error: TODO, find type from express
+      router[modExport](path, ...modExportMwArray);
+    } catch (error) {
+      console.log(
+        `[express-directory-router] Failed to create route for ${modExport} in ${file}`,
+      );
+    }
+  }
+
+  Object.keys(module).forEach(registerRoute);
+};
+
+const createDirRouter = async (dirNameRaw: string): Promise<Router> => {
   const router = Router();
 
+  const dirName = getDirName(dirNameRaw);
   const files = await getFiles(dirName);
-
-  await Promise.all(
-    files.map(async (file: string) => {
-      const moduleRaw = await import(file);
-      const module = moduleRaw.default ? moduleRaw.default : moduleRaw;
-
-      Object.keys(module).forEach((modExport: string) => {
-        try {
-          const path = genPath(dirName, file);
-          const modExportMw = module[modExport];
-          const modExportMwArray = Array.isArray(modExportMw)
-            ? modExportMw
-            : [modExportMw];
-          // @ts-expect-error: TODO, find type from express
-          router[modExport](path, ...modExportMwArray);
-        } catch (error) {
-          console.log(
-            `ERROR:express-directory-router\n\t[METHOD] ${modExport}\n\t[FILE] ${file}\n\t[MESSAGE] Failed to create route`,
-          );
-        }
-      });
-    }),
-  );
+  await Promise.all(files.map(file => registerRoutes(file, dirName, router)));
 
   return router;
-}
+};
 
 export { createDirRouter };
