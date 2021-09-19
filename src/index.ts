@@ -36,7 +36,7 @@ async function createDirRouter(dirNameRaw: string): Promise<Router> {
 
   const files = await getFiles(dirName);
 
-  files.forEach(async (file: string) => {
+  await files.forEach(async (file: string) => {
     const moduleRaw = await import(file);
     const module = moduleRaw.default ? moduleRaw.default : moduleRaw;
 
