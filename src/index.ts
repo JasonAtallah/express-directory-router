@@ -36,26 +36,28 @@ async function createDirRouter(dirNameRaw: string): Promise<Router> {
 
   const files = await getFiles(dirName);
 
-  await files.forEach(async (file: string) => {
-    const moduleRaw = await import(file);
-    const module = moduleRaw.default ? moduleRaw.default : moduleRaw;
+  await Promise.all(
+    files.map(async (file: string) => {
+      const moduleRaw = await import(file);
+      const module = moduleRaw.default ? moduleRaw.default : moduleRaw;
 
-    Object.keys(module).forEach((modExport: string) => {
-      try {
-        const path = genPath(dirName, file);
-        const modExportMw = module[modExport];
-        const modExportMwArray = Array.isArray(modExportMw)
-          ? modExportMw
-          : [modExportMw];
-        // @ts-expect-error: TODO, find type from express
-        router[modExport](path, ...modExportMwArray);
-      } catch (error) {
-        console.log(
-          `ERROR:express-directory-router\n\t[METHOD] ${modExport}\n\t[FILE] ${file}\n\t[MESSAGE] Failed to create route`,
-        );
-      }
-    });
-  });
+      Object.keys(module).forEach((modExport: string) => {
+        try {
+          const path = genPath(dirName, file);
+          const modExportMw = module[modExport];
+          const modExportMwArray = Array.isArray(modExportMw)
+            ? modExportMw
+            : [modExportMw];
+          // @ts-expect-error: TODO, find type from express
+          router[modExport](path, ...modExportMwArray);
+        } catch (error) {
+          console.log(
+            `ERROR:express-directory-router\n\t[METHOD] ${modExport}\n\t[FILE] ${file}\n\t[MESSAGE] Failed to create route`,
+          );
+        }
+      });
+    }),
+  );
 
   return router;
 }
